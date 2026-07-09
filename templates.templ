@@ -1,0 +1,95 @@
+package main
+
+import "fmt"
+
+templ layout(title string) {
+	<!doctype html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/styles.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+			<script src="/static/app.js" defer></script>
+		</head>
+		<body>
+			{ children... }
+		</body>
+	</html>
+}
+
+templ installPage() {
+	@layout("Install | AI Content Importer") {
+		<main class="install">
+			<h1>AI Content Importer</h1>
+			<p>This app adds a content item sidebar for importing content from DOCX and TXT files.</p>
+		</main>
+	}
+}
+
+templ sidebarPage() {
+	@layout("AI Content Importer") {
+		<main class="sidebar-shell" data-agility-sidebar>
+			<header class="sidebar-header">
+				<div>
+					<h1>AI Content Importer</h1>
+					<p id="context-label">Drop source documents for this content item.</p>
+				</div>
+				<span class="status-pill" id="sdk-status">Connecting</span>
+			</header>
+
+			<form
+				id="upload-form"
+				class="upload-form"
+				hx-post="/content-item-sidebar/upload"
+				hx-encoding="multipart/form-data"
+				hx-target="#upload-result"
+				hx-swap="innerHTML"
+			>
+				<input type="hidden" name="content_item_json" id="content-item-json"/>
+				<label class="dropzone" for="documents" id="dropzone">
+					<span class="dropzone-title">Drop DOCX or TXT files here</span>
+					<span class="dropzone-detail">or choose files from your computer</span>
+					<input id="documents" name="documents" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple/>
+				</label>
+
+				<div class="selected-files" id="selected-files" aria-live="polite">No files selected</div>
+
+				<div class="actions">
+					<button type="submit">Upload files</button>
+				</div>
+			</form>
+
+			<section id="upload-result" class="result-region" aria-live="polite">
+				@emptyUploadState()
+			</section>
+		</main>
+	}
+}
+
+templ emptyUploadState() {
+	<div class="empty-state">
+		<p>Uploaded files will appear here before processing is added.</p>
+	</div>
+}
+
+templ uploadResult(files []uploadedFile, message string) {
+	if message != "" {
+		<div class="notice notice-error">
+			{ message }
+		</div>
+	} else {
+		<div class="notice notice-success">
+			Ready for processing. The app accepted { fmt.Sprint(len(files)) } file(s).
+		</div>
+		<ul class="file-list">
+			for _, file := range files {
+				<li>
+					<span class="file-name">{ file.Name }</span>
+					<span class="file-meta">{ file.Type } · { formatBytes(file.Size) }</span>
+				</li>
+			}
+		</ul>
+	}
+}

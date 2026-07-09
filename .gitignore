@@ -1,0 +1,30 @@
+# Binaries and build output
+bin/
+dist/
+build/
+agility-ai-content-importer
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test and coverage output
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Profiling and tracing output
+*.prof
+*.pprof
+trace.out
+
+# Dependency/vendor directories
+vendor/
+
+# Local runtime and environment files
+tmp/
+*.log
+.env
+.env.*

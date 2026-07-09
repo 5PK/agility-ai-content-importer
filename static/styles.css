@@ -1,0 +1,226 @@
+:root {
+	color-scheme: light;
+	font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	color: #172033;
+	background: #ffffff;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background: #ffffff;
+}
+
+button,
+input {
+	font: inherit;
+}
+
+.sidebar-shell {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+	min-height: 100vh;
+	padding: 12px;
+}
+
+.sidebar-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.sidebar-header h1,
+.install h1 {
+	margin: 0;
+	font-size: 18px;
+	line-height: 1.25;
+	font-weight: 650;
+}
+
+.sidebar-header p,
+.install p {
+	margin: 4px 0 0;
+	color: #53627a;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.status-pill {
+	flex: 0 0 auto;
+	border: 1px solid #d7deea;
+	border-radius: 999px;
+	padding: 4px 8px;
+	color: #44546f;
+	background: #f7f9fc;
+	font-size: 12px;
+	line-height: 1;
+}
+
+.status-pill.is-ready {
+	border-color: #b9dfce;
+	color: #176440;
+	background: #effaf4;
+}
+
+.upload-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.dropzone {
+	display: flex;
+	min-height: 172px;
+	cursor: pointer;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border: 1px dashed #9aa8bd;
+	border-radius: 8px;
+	padding: 22px 16px;
+	text-align: center;
+	background: #f8fbff;
+	transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.dropzone.is-dragging,
+.dropzone:focus-within {
+	border-color: #2169d3;
+	background: #edf5ff;
+	box-shadow: 0 0 0 3px rgba(33, 105, 211, 0.16);
+}
+
+.dropzone-title {
+	color: #172033;
+	font-size: 15px;
+	font-weight: 650;
+	line-height: 1.35;
+}
+
+.dropzone-detail {
+	color: #68758c;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.dropzone input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.selected-files {
+	min-height: 20px;
+	color: #53627a;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.actions {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.actions button {
+	min-height: 36px;
+	border: 1px solid #1454b8;
+	border-radius: 6px;
+	padding: 0 14px;
+	cursor: pointer;
+	color: #ffffff;
+	background: #2169d3;
+	font-weight: 650;
+}
+
+.actions button:hover {
+	background: #1758bb;
+}
+
+.result-region {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.empty-state {
+	border-top: 1px solid #e2e7f0;
+	padding-top: 14px;
+	color: #68758c;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.empty-state p {
+	margin: 0;
+}
+
+.notice {
+	border-radius: 6px;
+	padding: 10px 12px;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.notice-success {
+	border: 1px solid #b9dfce;
+	color: #176440;
+	background: #effaf4;
+}
+
+.notice-error {
+	border: 1px solid #f0b8b8;
+	color: #8a1f1f;
+	background: #fff4f4;
+}
+
+.file-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.file-list li {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+	border: 1px solid #e2e7f0;
+	border-radius: 6px;
+	padding: 10px;
+	background: #ffffff;
+}
+
+.file-name {
+	min-width: 0;
+	overflow-wrap: anywhere;
+	font-size: 13px;
+	font-weight: 650;
+	line-height: 1.35;
+}
+
+.file-meta {
+	flex: 0 0 auto;
+	color: #68758c;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.install {
+	max-width: 680px;
+	padding: 24px;
+}

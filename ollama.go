@@ -90,6 +90,8 @@ func (c *ollamaClient) mapDOCXToFields(ctx context.Context, contentItemJSON stri
 		return nil, fmt.Errorf("Ollama error: %s", ollamaResp.Error)
 	}
 
+	fmt.Printf("AI output:\n%s\n", ollamaResp.Message.Content)
+
 	updates, err := parseFieldUpdates(ollamaResp.Message.Content)
 	if err != nil {
 		return nil, err

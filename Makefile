@@ -2,6 +2,8 @@ APP_NAME := agility-ai-content-importer
 BIN_DIR := dist
 BIN := $(BIN_DIR)/$(APP_NAME)
 PORT ?= 8080
+OLLAMA_URL ?= http://localhost:11434
+OLLAMA_MODEL ?= llama3.1
 GO_FILES := $(shell find . -name '*.go' ! -name '*_templ.go')
 
 .PHONY: help dev generate fmt test check build clean
@@ -17,7 +19,7 @@ help:
 	@printf "  make clean     Remove build output\n"
 
 dev: generate
-	PORT=$(PORT) go run .
+	PORT=$(PORT) OLLAMA_URL=$(OLLAMA_URL) OLLAMA_MODEL=$(OLLAMA_MODEL) go run .
 
 generate:
 	templ generate

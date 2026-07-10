@@ -29,6 +29,15 @@ input {
 	padding: 12px;
 }
 
+.surface-shell {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+	min-height: 100vh;
+	padding: 16px;
+}
+
 .sidebar-header {
 	display: flex;
 	align-items: flex-start;
@@ -223,4 +232,8 @@ input {
 .install {
 	max-width: 680px;
 	padding: 24px;
+}
+
+.install a {
+	color: #2169d3;
 }

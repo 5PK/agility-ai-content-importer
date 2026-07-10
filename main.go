@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -34,9 +35,22 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	mux.HandleFunc("GET /", s.handleHome)
+	mux.HandleFunc("GET /.well-known/agility-app.json", s.handleAppDefinition)
 	mux.HandleFunc("GET /install", s.handleInstall)
+	mux.HandleFunc("GET /home-dashboard", s.handleHomeDashboard)
+	mux.HandleFunc("GET /content-dashboard", s.handleContentDashboard)
+	mux.HandleFunc("GET /pages-dashboard", s.handlePagesDashboard)
 	mux.HandleFunc("GET /content-item-sidebar", s.handleContentItemSidebar)
+	mux.HandleFunc("GET /content-list-sidebar", s.handleContentListSidebar)
+	mux.HandleFunc("GET /page-sidebar", s.handlePageSidebar)
 	mux.HandleFunc("POST /content-item-sidebar/upload", s.handleUpload)
+	mux.HandleFunc("GET /api/app-uninstall", s.handleAppUninstall)
+	mux.HandleFunc("POST /api/app-uninstall", s.handleAppUninstall)
+	mux.HandleFunc("GET /api/get-language", s.handleNotImplementedAPI("get-language"))
+	mux.HandleFunc("POST /api/get-language", s.handleNotImplementedAPI("get-language"))
+	mux.HandleFunc("GET /api/hello", s.handleHello)
+	mux.HandleFunc("GET /api/translate-phrase", s.handleNotImplementedAPI("translate-phrase"))
+	mux.HandleFunc("POST /api/translate-phrase", s.handleNotImplementedAPI("translate-phrase"))
 
 	addr := ":" + port
 	s.logger.Info("starting server", "addr", addr)
@@ -47,15 +61,52 @@ func main() {
 }
 
 func (s *server) handleHome(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/content-item-sidebar", http.StatusFound)
+	render(r.Context(), w, homePage())
+}
+
+func (s *server) handleAppDefinition(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"name":              "AI Content Importer",
+		"documentationLink": "https://agilitycms.com/docs/apps",
+		"description":       "Import content from DOCX and TXT files into Agility content items.",
+		"version":           "0.1.0",
+		"__sdkVersion":      "2.0.0",
+		"configValues":      []any{},
+		"capabilities": map[string]any{
+			"contentItemSidebar": map[string]string{
+				"description": "Import content from DOCX and TXT files.",
+			},
+			"installScreen": false,
+		},
+	})
 }
 
 func (s *server) handleInstall(w http.ResponseWriter, r *http.Request) {
 	render(r.Context(), w, installPage())
 }
 
+func (s *server) handleHomeDashboard(w http.ResponseWriter, r *http.Request) {
+	render(r.Context(), w, surfacePage("Home Dashboard", "AI Content Importer home dashboard route."))
+}
+
+func (s *server) handleContentDashboard(w http.ResponseWriter, r *http.Request) {
+	render(r.Context(), w, surfacePage("Content Dashboard", "AI Content Importer content dashboard route."))
+}
+
+func (s *server) handlePagesDashboard(w http.ResponseWriter, r *http.Request) {
+	render(r.Context(), w, surfacePage("Pages Dashboard", "AI Content Importer pages dashboard route."))
+}
+
 func (s *server) handleContentItemSidebar(w http.ResponseWriter, r *http.Request) {
 	render(r.Context(), w, sidebarPage())
+}
+
+func (s *server) handleContentListSidebar(w http.ResponseWriter, r *http.Request) {
+	render(r.Context(), w, surfacePage("Content List Sidebar", "AI Content Importer content list sidebar route."))
+}
+
+func (s *server) handlePageSidebar(w http.ResponseWriter, r *http.Request) {
+	render(r.Context(), w, surfacePage("Page Sidebar", "AI Content Importer page sidebar route."))
 }
 
 func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +144,28 @@ func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
 	render(r.Context(), w, uploadResult(uploaded, ""))
 }
 
+func (s *server) handleAppUninstall(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	s.logger.Info("app uninstall action fired")
+	writeJSON(w, http.StatusOK, map[string]string{"status": "OK"})
+}
+
+func (s *server) handleHello(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"name": "AI Content Importer"})
+}
+
+func (s *server) handleNotImplementedAPI(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusNotImplemented, map[string]string{
+			"status":  "not_implemented",
+			"message": fmt.Sprintf("%s is not used by AI Content Importer yet.", name),
+		})
+	}
+}
+
 func acceptedDocumentType(name string) (string, error) {
 	ext := strings.ToLower(filepath.Ext(name))
 	switch ext {
@@ -102,6 +175,14 @@ func acceptedDocumentType(name string) (string, error) {
 		return "TXT", nil
 	default:
 		return "", fmt.Errorf("%s is not supported. Upload .docx or .txt files only.", name)
+	}
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(value); err != nil {
+		slog.Error("json response failed", "error", err)
 	}
 }
 

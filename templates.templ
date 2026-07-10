@@ -28,6 +28,36 @@ templ installPage() {
 	}
 }
 
+templ homePage() {
+	@layout("AI Content Importer") {
+		<main class="install">
+			<h1>AI Content Importer</h1>
+			<p>This app imports content from DOCX and TXT files into Agility content items.</p>
+			<p>
+				See the app definition file
+				<a href="/.well-known/agility-app.json">here</a>.
+			</p>
+		</main>
+	}
+}
+
+templ surfacePage(title string, description string) {
+	@layout(title + " | AI Content Importer") {
+		<main class="surface-shell" data-agility-sidebar>
+			<header class="sidebar-header">
+				<div>
+					<h1>{ title }</h1>
+					<p>{ description }</p>
+				</div>
+				<span class="status-pill" id="sdk-status">Connecting</span>
+			</header>
+			<div class="empty-state">
+				<p>This route is available for Agility app surface compatibility.</p>
+			</div>
+		</main>
+	}
+}
+
 templ sidebarPage() {
 	@layout("AI Content Importer") {
 		<main class="sidebar-shell" data-agility-sidebar>

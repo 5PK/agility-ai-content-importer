@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,6 +24,12 @@ type uploadedFile struct {
 	Name string
 	Size int64
 	Type string
+}
+
+type processedFile struct {
+	uploadedFile
+	Updates []fieldUpdate
+	Error   string
 }
 
 func main() {
@@ -125,7 +132,7 @@ func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploaded := make([]uploadedFile, 0, len(files))
+	results := make([]processedFile, 0, len(files))
 	for _, file := range files {
 		kind, err := acceptedDocumentType(file.Filename)
 		if err != nil {
@@ -134,14 +141,83 @@ func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		uploaded = append(uploaded, uploadedFile{
-			Name: file.Filename,
-			Size: file.Size,
-			Type: kind,
-		})
+		result := processedFile{
+			uploadedFile: uploadedFile{
+				Name: file.Filename,
+				Size: file.Size,
+				Type: kind,
+			},
+		}
+
+		if kind != "DOCX" {
+			result.Error = "TXT processing is not implemented yet."
+			results = append(results, result)
+			continue
+		}
+
+		updates, err := s.processDOCXUpload(r.Context(), file, r.FormValue("content_item_json"))
+		if err != nil {
+			result.Error = err.Error()
+			s.logger.Error("docx import failed", "file", file.Filename, "error", err)
+		} else {
+			result.Updates = updates
+		}
+
+		results = append(results, result)
 	}
 
-	render(r.Context(), w, uploadResult(uploaded, ""))
+	render(r.Context(), w, uploadResult(results, ""))
+}
+
+func (s *server) processDOCXUpload(ctx context.Context, header *multipart.FileHeader, contentItemJSON string) ([]fieldUpdate, error) {
+	if strings.TrimSpace(contentItemJSON) == "" {
+		contentItemJSON = "{}"
+	}
+
+	file, err := header.Open()
+	if err != nil {
+		return nil, fmt.Errorf("open upload: %w", err)
+	}
+	defer file.Close()
+
+	docxXML, err := extractDOCXXML(file, header.Size)
+	if err != nil {
+		return nil, err
+	}
+
+	updates, err := newOllamaClient().mapDOCXToFields(ctx, contentItemJSON, docxXML)
+	if err != nil {
+		return nil, err
+	}
+
+	return updates, nil
+}
+
+func fieldUpdatesJSON(results []processedFile) string {
+	updates := make([]fieldUpdate, 0)
+	for _, result := range results {
+		updates = append(updates, result.Updates...)
+	}
+
+	if len(updates) == 0 {
+		return "[]"
+	}
+
+	data, err := json.Marshal(updates)
+	if err != nil {
+		slog.Error("field update json failed", "error", err)
+		return "[]"
+	}
+
+	return string(data)
+}
+
+func successfulUpdateCount(results []processedFile) int {
+	count := 0
+	for _, result := range results {
+		count += len(result.Updates)
+	}
+	return count
 }
 
 func (s *server) handleAppUninstall(w http.ResponseWriter, r *http.Request) {

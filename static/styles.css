@@ -214,12 +214,34 @@ input {
 	background: #ffffff;
 }
 
+.file-summary {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 4px;
+}
+
 .file-name {
 	min-width: 0;
 	overflow-wrap: anywhere;
 	font-size: 13px;
 	font-weight: 650;
 	line-height: 1.35;
+}
+
+.file-fields,
+.file-error {
+	overflow-wrap: anywhere;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.file-fields {
+	color: #176440;
+}
+
+.file-error {
+	color: #8a1f1f;
 }
 
 .file-meta {

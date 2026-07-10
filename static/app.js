@@ -34,6 +34,20 @@
 		return promise;
 	}
 
+	function send(operationType, arg) {
+		const id = appID();
+		if (!id || window.parent === window) {
+			return;
+		}
+
+		window.parent.postMessage({
+			appID: id,
+			operationID: operationID(),
+			operationType: operationType,
+			arg: arg
+		}, "*");
+	}
+
 	function setHeight() {
 		const height = Math.ceil(document.documentElement.scrollHeight);
 		invoke("setHeight", { height: height });
@@ -54,7 +68,11 @@
 
 			const hiddenContext = document.getElementById("content-item-json");
 			if (hiddenContext) {
-				hiddenContext.value = JSON.stringify(window.agilityContext.contentItem || {});
+				hiddenContext.value = JSON.stringify({
+					locale: window.agilityContext.locale || null,
+					contentModel: window.agilityContext.contentModel || null,
+					contentItem: window.agilityContext.contentItem || null
+				});
 			}
 
 			const label = document.getElementById("context-label");
@@ -70,6 +88,37 @@
 				status.classList.add("is-ready");
 			}
 			setHeight();
+		});
+	}
+
+	function applyFieldUpdates() {
+		const payload = document.querySelector("[data-field-updates]:not([data-updates-applied])");
+		if (!payload) {
+			return;
+		}
+
+		payload.dataset.updatesApplied = "true";
+
+		let updates = [];
+		try {
+			updates = JSON.parse(payload.dataset.fieldUpdates || "[]");
+		} catch (error) {
+			console.error("Could not parse field updates", error);
+			return;
+		}
+
+		if (!Array.isArray(updates) || updates.length === 0) {
+			return;
+		}
+
+		updates.forEach(function (update) {
+			if (!update || !update.fieldName) {
+				return;
+			}
+			send("setFieldValue", {
+				name: update.fieldName,
+				value: update.value
+			});
 		});
 	}
 
@@ -137,5 +186,8 @@
 		initializeAgility();
 	});
 
-	document.body.addEventListener("htmx:afterSettle", setHeight);
+	document.body.addEventListener("htmx:afterSettle", function () {
+		applyFieldUpdates();
+		setHeight();
+	});
 })();
